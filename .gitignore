@@ -1,0 +1,38 @@
+# Node
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Ionic React build output
+build/
+www/
+dist/
+
+# Capacitor native projects
+android/
+ios/
+
+# Android Studio junk
+*.iml
+.gradle/
+.cxx/
+local.properties
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# Editor junk
+.DS_Store
+.idea/
+.vscode/*
+!/.vscode/extensions.json
+!/.vscode/settings.json
+
+# Testing
+coverage/
+
+# Misc
+.eslintcache
