@@ -9,10 +9,6 @@ build/
 www/
 dist/
 
-# Capacitor native projects
-android/
-ios/
-
 # Android Studio junk
 *.iml
 .gradle/
@@ -36,3 +32,6 @@ coverage/
 
 # Misc
 .eslintcache
+
+#Logs
+*.log

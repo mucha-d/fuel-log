@@ -16,7 +16,7 @@ const ExportFile = () => {
         endDate: Date
     ) => 
     {
-        const doc = new jsPDF();
+        const doc = new jsPDF({ orientation: "landscape" });
 
         const columnLabels: Record<string, string> = {
             date: "Data",
@@ -36,7 +36,7 @@ const ExportFile = () => {
         const body = rows.map((row) => columns.map((c) => row[c]));
 
         doc.setFont("helvetica", "bold");
-        doc.setFontSize(28);
+        doc.setFontSize(32);
         doc.text(title, 20, 20);
 
         doc.setFont("helvetica", "normal");
@@ -44,22 +44,23 @@ const ExportFile = () => {
         doc.text(
         `Od: ${startDate.toLocaleDateString()} do: ${endDate.toLocaleDateString()}`,
         16,
-        44
+        35
         );
 
         autoTable(doc, {
-            startY: 60,
+            startY: 40,
             head: [headers],
             body: body,
-            styles: { fontSize: 16 },
+            styles: { fontSize: 14 },
         });
 
         const pdfOutput = doc.output("arraybuffer");
         const pdfBlob = new Blob([pdfOutput], { type: "application/pdf" });
 
-        const base64Data = await blobToBase64(pdfBlob);
+        const base64Full = await blobToBase64(pdfBlob);
+        const base64Data = base64Full.split(",")[1];
 
-        await Filesystem.writeFile({
+        const result = await Filesystem.writeFile({
             path: filename,
             data: base64Data,
             directory: Directory.Documents,
@@ -69,7 +70,7 @@ const ExportFile = () => {
         await Share.share({
             title: filename,
             text: "Wygenerowany raport PDF",
-            url: `documents://${filename}`,
+            url: result.uri,
         });
     };
 

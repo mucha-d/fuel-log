@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Formularz Tankowania</string>
+    <string name="title_activity_main">Formularz Tankowania</string>
+    <string name="package_name">com.muchad.refuelingapp</string>
+    <string name="custom_url_scheme">com.muchad.refuelingapp</string>
+</resources>
