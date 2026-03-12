@@ -1,10 +1,12 @@
 import React from "react";
 import { useState } from "react";
+import { useIonToast } from '@ionic/react';
 
 const Refueling = () => {
     const [error, setError] = useState("");
+	const [present] = useIonToast();
 
-    const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => 
+    const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => 
     {
 		e.preventDefault();
 
@@ -42,6 +44,13 @@ const Refueling = () => {
 		const old = JSON.parse(localStorage.getItem("refuelings") || "[]");
 		old.push(entry);
 		localStorage.setItem("refuelings", JSON.stringify(old));
+		
+		present({
+            message: `Zapisano wpis!`,
+            duration: 3000,
+            position: 'bottom',
+            positionAnchor: 'nav'
+        });
 
 		e.currentTarget.reset();
     };
@@ -65,7 +74,7 @@ const Refueling = () => {
 				<button type="submit">Zapisz</button>
 			</form>
 
-			<nav>
+			<nav id="nav">
 				<a href="/" className="active">Tankowanie</a>
 				<a href="/FuelDelivery">Dostawa<br/>paliwa</a>
 				<a href="/ExportFile">Pobierz<br/>do pliku</a>

@@ -1,12 +1,13 @@
 import React from "react";
 import { useState } from "react";
 import { Filesystem, Directory } from '@capacitor/filesystem';
-import { Share } from '@capacitor/share';
 import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
+import { useIonToast } from '@ionic/react';
 
 const ExportFile = () => {
     const [error, setError] = useState("");
+    const [present] = useIonToast();
 
     const generatePdf = async (
         title: string,
@@ -66,12 +67,6 @@ const ExportFile = () => {
             directory: Directory.Documents,
         });
 
-        // Opcjonalnie: otwórz natywne udostępnianie
-        await Share.share({
-            title: filename,
-            text: "Wygenerowany raport PDF",
-            url: result.uri,
-        });
     };
 
     // Pomocnicza funkcja
@@ -84,7 +79,7 @@ const ExportFile = () => {
         });
     };
 
-    const handlePdf = (e: React.FormEvent) => {
+    const handlePdf = async (e: React.FormEvent) => {
         e.preventDefault();
 
         const form = e.target as HTMLFormElement;
@@ -108,6 +103,9 @@ const ExportFile = () => {
         ? new Date(String(data.endDate))
         : new Date();
 
+
+        const files: string[] = [];
+
         // DOSTAWY
         if (includeDeliveries) 
         {
@@ -119,7 +117,7 @@ const ExportFile = () => {
             });
 
             if (filtered.length > 0) {
-                generatePdf(
+                await generatePdf(
                 "Dostawy paliwa",
                 "dostawy.pdf",
                 filtered,
@@ -129,6 +127,7 @@ const ExportFile = () => {
             }else{
                 return setError("Niewystarczająca ilość wpisów dla dostaw paliwa");
             }
+            files.push("dostawy.pdf");
         }
 
         // TANKOWANIA
@@ -142,7 +141,7 @@ const ExportFile = () => {
             });
 
             if (filtered.length > 0) {
-                generatePdf(
+                await generatePdf(
                 "Tankowania",
                 "tankowania.pdf",
                 filtered,
@@ -152,7 +151,15 @@ const ExportFile = () => {
             }else{
                 return setError("Niewystarczająca ilość wpisów dla tankowań");
             }
+            files.push("tankowania.pdf");
         }
+
+        present({
+            message: `Zapisano: ${files.join(", ")}!`,
+            duration: 3000,
+            position: 'bottom',
+            positionAnchor: 'nav'
+        });
 
         form.reset();
     };
@@ -185,7 +192,7 @@ const ExportFile = () => {
                 <button type="submit">Pobierz .pdf</button>
             </form>
 
-            <nav>
+            <nav id="nav">
                 <a href="/">Tankowanie</a>
                 <a href="/FuelDelivery">Dostawa<br/>paliwa</a>
                 <a href="/ExportFile" className="active">Pobierz<br/>do pliku</a>
