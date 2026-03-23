@@ -16,6 +16,8 @@ html, body {
     width: 90vw;
     margin: 20px auto 80px auto;
     padding-top: 15px;
+    overflow-y: auto;
+    height: 100dvh;
 }
 
 h1{

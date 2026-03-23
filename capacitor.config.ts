@@ -9,6 +9,9 @@ const config: CapacitorConfig = {
       resize: "none",
       resizeOnFullScreen: true,
     }
+  },
+  android: {
+    allowMixedContent: true,
   }
 };
 

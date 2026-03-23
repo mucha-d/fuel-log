@@ -4,6 +4,7 @@ import { Filesystem, Directory } from '@capacitor/filesystem';
 import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
 import { useIonToast } from '@ionic/react';
+import * as XLSX from 'xlsx';
 
 const ExportFile = () => {
     const [error, setError] = useState("");
@@ -15,8 +16,7 @@ const ExportFile = () => {
         rows: any[],
         startDate: Date,
         endDate: Date
-    ) => 
-    {
+    ) => {
         const doc = new jsPDF({ orientation: "landscape" });
 
         const columnLabels: Record<string, string> = {
@@ -61,7 +61,8 @@ const ExportFile = () => {
         const base64Full = await blobToBase64(pdfBlob);
         const base64Data = base64Full.split(",")[1];
 
-        const result = await Filesystem.writeFile({
+        await Filesystem.requestPermissions();
+        await Filesystem.writeFile({
             path: filename,
             data: base64Data,
             directory: Directory.Documents,
@@ -69,8 +70,49 @@ const ExportFile = () => {
 
     };
 
-    // Pomocnicza funkcja
+    const generateXlsx = async (
+        title: string,
+        filename: string,
+        rows: any[]
+    ) =>{
+        const columnLabels: Record<string, string> = {
+            date: "Data",
+            liters: "Litry",
+            machine: "Maszyna",
+            sideNumber: "Numer boczny",
+            operator: "Operator",
+            total: "Total",
+            time: "Godzina",
+            engineHours: "MotoGodziny"
+        };
 
+        const columns = Object.keys(rows[0]);
+        const headers = columns.map((c) => columnLabels[c] || c);
+        const body = rows.map((row) => columns.map((c) => {
+            if (c === 'date') return new Date(row[c]);
+            return row[c];
+        }));
+
+        const ws = XLSX.utils.aoa_to_sheet([headers, ...body]);
+        ws['!cols'] = columns.map(() => ({ wch: 20 }));
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, title);
+
+        const xlsxOutput = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+        const blob = new Blob([xlsxOutput], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+
+        const base64Full = await blobToBase64(blob);
+        const base64Data = base64Full.split(",")[1];
+
+        await Filesystem.requestPermissions();
+        await Filesystem.writeFile({
+            path: filename,
+            data: base64Data,
+            directory: Directory.Documents,
+        });
+    }
+
+    // Pomocnicza funkcja
     const blobToBase64 = (blob: Blob): Promise<string> => {
         return new Promise((resolve) => {
             const reader = new FileReader();
@@ -79,10 +121,10 @@ const ExportFile = () => {
         });
     };
 
-    const handlePdf = async (e: React.FormEvent) => {
+    const handleExport = async (e: React.MouseEvent, format: 'pdf' | 'xlsx') => {
         e.preventDefault();
 
-        const form = e.target as HTMLFormElement;
+        const form = (e.target as HTMLElement).closest('form') as HTMLFormElement;
         const formData = new FormData(form);
         const data = Object.fromEntries(formData);
 
@@ -105,6 +147,7 @@ const ExportFile = () => {
 
 
         const files: string[] = [];
+        const fmt = (d: Date) => d.toISOString().split("T")[0].replace(/-/g, "");
 
         // DOSTAWY
         if (includeDeliveries) 
@@ -117,17 +160,25 @@ const ExportFile = () => {
             });
 
             if (filtered.length > 0) {
-                await generatePdf(
-                "Dostawy paliwa",
-                "dostawy.pdf",
-                filtered,
-                startDate,
-                endDate
-                );
+                if(format === 'pdf'){
+                    await generatePdf(
+                        "Dostawy paliwa",
+                        `dostawy_${fmt(startDate)}-${fmt(endDate)}.pdf`,
+                        filtered,
+                        startDate,
+                        endDate
+                    );
+                }else{
+                    await generateXlsx(
+                        "Dostawy paliwa",
+                        `dostawy_${fmt(startDate)}-${fmt(endDate)}.xlsx`,
+                        filtered
+                    );
+                }
             }else{
                 return setError("Niewystarczająca ilość wpisów dla dostaw paliwa");
             }
-            files.push("dostawy.pdf");
+            files.push(`dostawy_${fmt(startDate)}-${fmt(endDate)}.` + format);
         }
 
         // TANKOWANIA
@@ -141,21 +192,29 @@ const ExportFile = () => {
             });
 
             if (filtered.length > 0) {
-                await generatePdf(
-                "Tankowania",
-                "tankowania.pdf",
-                filtered,
-                startDate,
-                endDate
-                );
+                if(format === 'pdf'){
+                    await generatePdf(
+                        "Tankowania",
+                        `tankowania_${fmt(startDate)}-${fmt(endDate)}.pdf`,
+                        filtered,
+                        startDate,
+                        endDate
+                    );
+                }else{
+                    await generateXlsx(
+                        "Tankowania",
+                        `tankowania_${fmt(startDate)}-${fmt(endDate)}.xlsx`,
+                        filtered
+                    );
+                }
             }else{
                 return setError("Niewystarczająca ilość wpisów dla tankowań");
             }
-            files.push("tankowania.pdf");
+            files.push(`tankowania_${fmt(startDate)}-${fmt(endDate)}.` + format);
         }
 
         present({
-            message: `Zapisano: ${files.join(", ")}!`,
+            message: `Zapisano ${files.length} pliki!!`,
             duration: 3000,
             position: 'bottom',
             positionAnchor: 'nav'
@@ -168,7 +227,7 @@ const ExportFile = () => {
         <div className="container">
             <h1>Pobierz do pliku</h1>
 
-            <form onSubmit={handlePdf}>
+            <form>
                 <p id="error" style={{ visibility: error ? "visible" : "hidden" }}>
                 {error}
                 </p>
@@ -189,7 +248,8 @@ const ExportFile = () => {
                 <label>Do dnia:</label>
                 <input type="date" name="endDate" />
 
-                <button type="submit">Pobierz .pdf</button>
+                <button type="button" onClick={(e)=>handleExport(e, 'pdf')}>Pobierz .pdf</button>
+                <button type="button" onClick={(e)=>handleExport(e, 'xlsx')}>Pobierz .xlsx</button>
             </form>
 
             <nav id="nav">
