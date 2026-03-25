@@ -6,9 +6,65 @@ import autoTable from "jspdf-autotable";
 import { useIonToast } from '@ionic/react';
 import * as XLSX from 'xlsx';
 
+type RangeMode = "month" | "custom";
+type DataType = "refuelings" | "deliveries" | "both";
+
+const MONTHS = [
+    "Styczeń", "Luty", "Marzec", "Kwiecień", "Maj", "Czerwiec",
+    "Lipiec", "Sierpień", "Wrzesień", "Październik", "Listopad", "Grudzień"
+];
+
 const ExportFile = () => {
+    const now = new Date();
+
     const [error, setError] = useState("");
     const [present] = useIonToast();
+
+    const [rangeMode, setRangeMode] = useState<RangeMode>("month");
+    const [dataType, setDataType] = useState<DataType>("both");
+    const [selectedMonth, setSelectedMonth] = useState(now.getMonth());
+    const [selectedYear, setSelectedYear] = useState(now.getFullYear());
+    const [customStart, setCustomStart] = useState("");
+    const [customEnd, setCustomEnd] = useState("");
+    
+
+    const years = Array.from({ length: 5 }, (_, i) => now.getFullYear() - i);
+
+    const getDateRange = (): { startDate: Date; endDate: Date; label: string } => {
+        if (rangeMode === "month") {
+            const startDate = new Date(selectedYear, selectedMonth, 1);
+            const endDate = new Date(selectedYear, selectedMonth + 1, 0, 23, 59, 59);
+            const label = `${selectedYear}-${String(selectedMonth + 1).padStart(2, "0")}`;
+            return { startDate, endDate, label };
+        } else {
+            const startDate = customStart ? new Date(customStart) : new Date(now.getFullYear(), now.getMonth(), 1);
+            const endDate = customEnd ? new Date(customEnd + "T23:59:59") : new Date();
+            const fmt = (d: Date) =>
+                `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+            const label = `${fmt(startDate)}_${fmt(endDate)}`;
+            return { startDate, endDate, label };
+        }
+    };
+
+    const columnLabels: Record<string, string> = {
+        date: "Data",
+        liters: "Litry",
+        machine: "Maszyna",
+        sideNumber: "Numer boczny",
+        operator: "Operator",
+        total: "Total",
+        time: "Godzina",
+        engineHours: "MotoGodziny"
+    };
+
+    // Pomocnicza funkcja
+    const blobToBase64 = (blob: Blob): Promise<string> => {
+        return new Promise((resolve) => {
+            const reader = new FileReader();
+            reader.onloadend = () => resolve(reader.result as string);
+            reader.readAsDataURL(blob);
+        });
+    };
 
     const generatePdf = async (
         title: string,
@@ -16,20 +72,9 @@ const ExportFile = () => {
         rows: any[],
         startDate: Date,
         endDate: Date
-    ) => {
+    ) => 
+    {
         const doc = new jsPDF({ orientation: "landscape" });
-
-        const columnLabels: Record<string, string> = {
-            date: "Data",
-            liters: "Litry",
-            machine: "Maszyna",
-            sideNumber: "Numer boczny",
-            operator: "Operator",
-            total: "Total",
-            time: "Godzina",
-            engineHours: "MotoGodziny"
-        };
-
         const columns = Object.keys(rows[0]);
         const headers = columns.map((c) => columnLabels[c] || c);
 
@@ -74,18 +119,8 @@ const ExportFile = () => {
         title: string,
         filename: string,
         rows: any[]
-    ) =>{
-        const columnLabels: Record<string, string> = {
-            date: "Data",
-            liters: "Litry",
-            machine: "Maszyna",
-            sideNumber: "Numer boczny",
-            operator: "Operator",
-            total: "Total",
-            time: "Godzina",
-            engineHours: "MotoGodziny"
-        };
-
+    ) =>
+    {
         const columns = Object.keys(rows[0]);
         const headers = columns.map((c) => columnLabels[c] || c);
         const body = rows.map((row) => columns.map((c) => {
@@ -112,48 +147,27 @@ const ExportFile = () => {
         });
     }
 
-    // Pomocnicza funkcja
-    const blobToBase64 = (blob: Blob): Promise<string> => {
-        return new Promise((resolve) => {
-            const reader = new FileReader();
-            reader.onloadend = () => resolve(reader.result as string);
-            reader.readAsDataURL(blob);
-        });
-    };
-
-    const handleExport = async (e: React.MouseEvent, format: 'pdf' | 'xlsx') => {
-        e.preventDefault();
-
-        const form = (e.target as HTMLElement).closest('form') as HTMLFormElement;
-        const formData = new FormData(form);
-        const data = Object.fromEntries(formData);
-
-        const includeRefuelings = data.refuelings === "on";
-        const includeDeliveries = data.deliveries === "on";
-
-        if (!includeRefuelings && !includeDeliveries) {
-            return setError("Musisz wybrać dane.");
-        }
-
+    const handleExport = async (format: 'pdf' | 'xlsx') => {
         setError("");
 
-        const startDate = data.startDate
-        ? new Date(String(data.startDate))
-        : new Date(0);
+        const includeRefuelings = dataType === 'refuelings' || dataType === 'both';
+        const includeDeliveries = dataType === 'deliveries' || dataType === 'both';
 
-        const endDate = data.endDate
-        ? new Date(String(data.endDate))
-        : new Date();
+        if(rangeMode === "custom" && customStart === "" || customEnd === ""){
+            return setError("Musisz podać daty w zakresie!");
+        }
 
+        const {startDate, endDate, label} = getDateRange();
+        if(startDate > endDate){
+            return setError("Nieprawidłowy zakres dat!");
+        }
 
         const files: string[] = [];
-        const fmt = (d: Date) => d.toISOString().split("T")[0].replace(/-/g, "");
 
         // DOSTAWY
         if (includeDeliveries) 
         {
             const deliveries = JSON.parse(localStorage.getItem("deliveries") || "[]");
-
             const filtered = deliveries.filter((d: any) => {
                 const date = new Date(d.date);
                 return date >= startDate && date <= endDate;
@@ -161,31 +175,34 @@ const ExportFile = () => {
 
             if (filtered.length > 0) {
                 if(format === 'pdf'){
+                    const filename = `dostawy_${label}.pdf`;
                     await generatePdf(
                         "Dostawy paliwa",
-                        `dostawy_${fmt(startDate)}-${fmt(endDate)}.pdf`,
+                        filename,
                         filtered,
                         startDate,
                         endDate
                     );
-                }else{
+                    files.push(filename);
+                }
+                else if(format === 'xlsx'){
+                    const filename = `dostawy_${label}.xlsx`;
                     await generateXlsx(
                         "Dostawy paliwa",
-                        `dostawy_${fmt(startDate)}-${fmt(endDate)}.xlsx`,
+                        filename,
                         filtered
                     );
+                    files.push(filename);
                 }
             }else{
                 return setError("Niewystarczająca ilość wpisów dla dostaw paliwa");
             }
-            files.push(`dostawy_${fmt(startDate)}-${fmt(endDate)}.` + format);
         }
 
         // TANKOWANIA
         if (includeRefuelings) 
         {
             const refuelings = JSON.parse(localStorage.getItem("refuelings") || "[]");
-
             const filtered = refuelings.filter((d: any) => {
                 const date = new Date(d.date);
                 return date >= startDate && date <= endDate;
@@ -193,65 +210,144 @@ const ExportFile = () => {
 
             if (filtered.length > 0) {
                 if(format === 'pdf'){
+                    const filename = `tankowania_${label}.pdf`;
                     await generatePdf(
                         "Tankowania",
-                        `tankowania_${fmt(startDate)}-${fmt(endDate)}.pdf`,
+                        filename,
                         filtered,
                         startDate,
                         endDate
                     );
-                }else{
+                    files.push(filename);
+                }
+                else if(format === 'xlsx'){
+                    const filename = `tankowania_${label}.xlsx`;
                     await generateXlsx(
                         "Tankowania",
-                        `tankowania_${fmt(startDate)}-${fmt(endDate)}.xlsx`,
+                        filename,
                         filtered
                     );
+                    files.push(filename);
                 }
             }else{
                 return setError("Niewystarczająca ilość wpisów dla tankowań");
             }
-            files.push(`tankowania_${fmt(startDate)}-${fmt(endDate)}.` + format);
         }
 
         present({
-            message: `Zapisano ${files.length} pliki!!`,
+            message: `Zapisano ${files.length} ${(files.length > 1) ? "pliki" : "plik"}!!`,
             duration: 3000,
             position: 'bottom',
             positionAnchor: 'nav'
         });
 
-        form.reset();
     };
 
     return (
         <div className="container">
             <h1>Pobierz do pliku</h1>
-
-            <form>
+            <div className="export-form">
                 <p id="error" style={{ visibility: error ? "visible" : "hidden" }}>
-                {error}
+                    {error}
                 </p>
 
-                <div className="row">
-                    <label>Tankowania:</label>
-                    <input type="checkbox" name="refuelings" />
+                {/* DANE DO POBRANIA */}
+                <div className="field-group">
+                    <label>Dane:</label>
+                    <div className="radio-group">
+                        {([
+                            ["refuelings", "Tankowania"],
+                            ["deliveries", "Dostawy paliwa"],
+                            ["both", "Oba"],
+                        ] as [DataType, string][]).map(([val, lbl]) => (
+                            <label key={val} className="radio-label">
+                                <input
+                                    type="radio"
+                                    name="dataType"
+                                    value={val}
+                                    checked={dataType === val}
+                                    onChange={() => setDataType(val)}
+                                />
+                                {lbl}
+                            </label>
+                        ))}
+                    </div>
                 </div>
 
-                <div className="row">
-                    <label>Dostawy paliwa:</label>
-                    <input type="checkbox" name="deliveries" />
+                {/* SPOSÓB WYBORU DATY */}
+                <div className="field-group">
+                    <label>Zakres:</label>
+                    <div className="radio-group">
+                        <label className="radio-label">
+                            <input
+                                type="radio"
+                                name="rangeMode"
+                                checked={rangeMode === "month"}
+                                onChange={() => setRangeMode("month")}
+                            />
+                            Miesiąc
+                        </label>
+                        <label className="radio-label">
+                            <input
+                                type="radio"
+                                name="rangeMode"
+                                checked={rangeMode === "custom"}
+                                onChange={() => setRangeMode("custom")}
+                            />
+                            Własny zakres
+                        </label>
+                    </div>
                 </div>
 
-                <label>Od dnia:</label>
-                <input type="date" name="startDate" />
+                {/* WYBÓR MIESIĄCA */}
+                {rangeMode === "month" && (
+                    <div className="month-picker">
+                        <select
+                            value={selectedMonth}
+                            onChange={(e) => setSelectedMonth(Number(e.target.value))}
+                        >
+                            {MONTHS.map((m, i) => (
+                                <option key={i} value={i}>{m}</option>
+                            ))}
+                        </select>
+                        <select
+                            value={selectedYear}
+                            onChange={(e) => setSelectedYear(Number(e.target.value))}
+                        >
+                            {years.map((y) => (
+                                <option key={y} value={y}>{y}</option>
+                            ))}
+                        </select>
+                    </div>
+                )}
 
-                <label>Do dnia:</label>
-                <input type="date" name="endDate" />
+                {/* DOWNOLNY ZAKRES DAT */}
+                {rangeMode === "custom" && (
+                    <div className="custom-range">
+                        <div className="row">
+                            <label>Od dnia:</label>
+                            <input
+                                type="date"
+                                value={customStart}
+                                onChange={(e) => setCustomStart(e.target.value)}
+                            />
+                        </div>
+                        <div className="row">
+                            <label>Do dnia:</label>
+                            <input
+                                type="date"
+                                value={customEnd}
+                                onChange={(e) => setCustomEnd(e.target.value)}
+                            />
+                        </div>
+                    </div>
+                )}
 
-                <button type="button" onClick={(e)=>handleExport(e, 'pdf')}>Pobierz .pdf</button>
-                <button type="button" onClick={(e)=>handleExport(e, 'xlsx')}>Pobierz .xlsx</button>
-            </form>
-
+                <div className='row'>
+                    <button type="button" onClick={(e) => handleExport('pdf')}>Pobierz PDF</button>
+                    <button type="button" onClick={(e) => handleExport('xlsx')}>Pobierz Excel</button>
+                </div>
+            </div>
             <nav id="nav">
                 <a href="/">Tankowanie</a>
                 <a href="/FuelDelivery">Dostawa<br/>paliwa</a>
