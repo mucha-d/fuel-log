@@ -1,6 +1,7 @@
 import React from "react";
 import { useState } from "react";
 import { useIonToast } from '@ionic/react';
+import { addFuelDelivery } from "../services/dbConnection";
 
 const FuelDelivery = () => {
     const [error, setError] = useState("");
@@ -35,27 +36,31 @@ const FuelDelivery = () => {
 
         setError("");
 
-        // ADD DATE + TIME
         const now = new Date();
         const entry = {
-            ...data,
             date: now.toISOString().split("T")[0],
             time: now.toLocaleTimeString("pl-PL"),
+            machine: String(data.machine),
+            sideNumber: String(data.sideNumber),
+            operator: String(data.operator),
+            liters: Number(data.liters),
+            engineHours: Number(data.engineHours),
+            total: Number(data.total)
         };
-
-        // SAVE TO LOCALSTORAGE
-        const old = JSON.parse(localStorage.getItem("deliveries") || "[]");
-        old.push(entry);
-        localStorage.setItem("deliveries", JSON.stringify(old));
-
-        present({
-            message: `Zapisano wpis!`,
-            duration: 3000,
-            position: 'bottom',
-            positionAnchor: 'nav'
-        });
-
-        e.currentTarget.reset();
+        
+        //ZAPIS
+        try {
+            await addFuelDelivery(entry);
+            present({
+                message: `Zapisano wpis!`,
+                duration: 3000,
+                position: 'bottom',
+                positionAnchor: 'nav'
+            });
+            e.currentTarget.reset();
+        } catch {
+            setError("Błąd zapisu. Spróbuj ponownie.");
+        }	
     };
 
     return (

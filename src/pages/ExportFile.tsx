@@ -5,6 +5,7 @@ import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
 import { useIonToast } from '@ionic/react';
 import * as XLSX from 'xlsx';
+import { getRefuelings, getFuelDeliveries } from "../services/dbConnection";
 
 type RangeMode = "month" | "custom";
 type DataType = "refuelings" | "deliveries" | "both";
@@ -153,7 +154,7 @@ const ExportFile = () => {
         const includeRefuelings = dataType === 'refuelings' || dataType === 'both';
         const includeDeliveries = dataType === 'deliveries' || dataType === 'both';
 
-        if(rangeMode === "custom" && customStart === "" || customEnd === ""){
+        if(rangeMode === "custom" && (customStart === "" || customEnd === "")){
             return setError("Musisz podać daty w zakresie!");
         }
 
@@ -163,11 +164,17 @@ const ExportFile = () => {
         }
 
         const files: string[] = [];
+        const fmt = (d: Date) => d.toISOString().split("T")[0];
 
         // DOSTAWY
         if (includeDeliveries) 
         {
-            const deliveries = JSON.parse(localStorage.getItem("deliveries") || "[]");
+            let deliveries = [];
+            try {
+                deliveries = await getFuelDeliveries(fmt(startDate), fmt(endDate));
+            } catch {
+                return setError("Błąd odczytu danych. Spróbuj ponownie.");
+            }
             const filtered = deliveries.filter((d: any) => {
                 const date = new Date(d.date);
                 return date >= startDate && date <= endDate;
@@ -202,7 +209,12 @@ const ExportFile = () => {
         // TANKOWANIA
         if (includeRefuelings) 
         {
-            const refuelings = JSON.parse(localStorage.getItem("refuelings") || "[]");
+            let refuelings = [];
+            try {
+                refuelings = await getRefuelings(fmt(startDate), fmt(endDate));
+            } catch {
+                return setError("Błąd odczytu danych. Spróbuj ponownie.");
+            }
             const filtered = refuelings.filter((d: any) => {
                 const date = new Date(d.date);
                 return date >= startDate && date <= endDate;

@@ -210,7 +210,10 @@ input[type="radio"] {
     flex-direction: column;
     gap: 8px;
 }
-
+input[type="date"]{
+    width: 70%;
+}
+                                
 
 @media (max-width: 399px) {
 
@@ -286,6 +289,10 @@ input[type="radio"] {
 
     .export-form #error{
         margin: 0;
+    }
+
+    input[type="date"]{
+        width: 60%;
     }
 }
 
@@ -449,6 +456,9 @@ input[type="radio"] {
     }
     .month-picker {
         gap: 20px;
+    }
+    input[type="date"]{
+        width: 80%;
     }
 }
 

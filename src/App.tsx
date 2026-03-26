@@ -5,6 +5,8 @@ import { IonReactRouter } from '@ionic/react-router';
 import Refueling from "./pages/Refueling";
 import FuelDelivery from "./pages/FuelDelivery";
 import ExportFile from './pages/ExportFile';
+import { useEffect } from 'react';
+import { initDB } from './services/dbConnection';
 
 /* Core CSS required for Ionic components to work properly */
 import '@ionic/react/css/core.css';
@@ -28,16 +30,22 @@ import './style.css';
 
 setupIonicReact();
 
-const App: React.FC = () => (
-  <IonApp>
-    <IonReactRouter>
-      <IonRouterOutlet>
-        <Route exact path="/" component={Refueling} />
-        <Route exact path="/FuelDelivery" component={FuelDelivery} />
-        <Route exact path="/ExportFile" component={ExportFile} />
-      </IonRouterOutlet>
-    </IonReactRouter>
-  </IonApp>
-);
+const App: React.FC = () => {
+  useEffect(() => {
+		initDB();
+  }, []);
+
+  return (
+    <IonApp>
+      <IonReactRouter>
+        <IonRouterOutlet>
+          <Route exact path="/" component={Refueling} />
+          <Route exact path="/FuelDelivery" component={FuelDelivery} />
+          <Route exact path="/ExportFile" component={ExportFile} />
+        </IonRouterOutlet>
+      </IonReactRouter>
+    </IonApp>
+  );
+};
 
 export default App;
