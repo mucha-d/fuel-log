@@ -118,11 +118,6 @@ nav a:not(:last-child)::after{
     width: auto;
 }
 
-input[type="checkbox"] {
-    transform: scale(1.3);
-    margin-top: 6px;
-}
-
 label{
     font-weight: bolder;
     font-size: 20px;
@@ -188,16 +183,15 @@ ion-toast::part(message) {
 }
 
 input[type="radio"] {
-    width: auto !important;
     padding: 0 !important;
     border: none !important;
     background: none !important;
-    height: auto !important;
 }
 
 .radio-label input[type="radio"] {
     color-scheme: light;
-    transform: scale(1.4);
+    width: 18px !important;
+    height: 18px !important;
     margin: 0;
     flex-shrink: 0;
 }
@@ -217,9 +211,6 @@ input[type="radio"] {
     gap: 8px;
 }
 
-.export-form #error{
-    margin: 0;
-}
 
 @media (max-width: 399px) {
 
@@ -261,11 +252,6 @@ input[type="radio"] {
         margin-bottom: 10px;
     }
 
-    input[type="checkbox"]{
-        transform: scale(1);
-        margin-top: 4px;
-    }
-
     #error{
         padding: 10px;
         font-size: 14px;
@@ -290,12 +276,17 @@ input[type="radio"] {
     }
 
     .radio-label input[type="radio"] {
-        transform: scale(1.2);
+        width: 15px !important;
+        height: 15px !important;
     }
 
     .export-form {
         gap: 12px;
     }       
+
+    .export-form #error{
+        margin: 0;
+    }
 }
 
 @media (min-width: 601px) {
@@ -343,11 +334,6 @@ input[type="radio"] {
         margin-bottom: 24px;
     }
 
-    input[type="checkbox"]{
-        transform: scale(1.6);
-        margin-top: 9px;
-    }
-    
     #error{
         padding: 16px;
         font-size: 22px;
@@ -373,7 +359,8 @@ input[type="radio"] {
     }
 
     .radio-label input[type="radio"] {
-        transform: scale(1.7);
+        width: 24px !important;
+        height: 24px !important;
     }
 
     .export-form {
@@ -429,11 +416,6 @@ input[type="radio"] {
         gap: 30px;
         margin-bottom: 30px;
     }
-    
-    input[type="checkbox"]{
-        transform: scale(2.3);
-        margin-top: 12px;
-    }
 
     #error{
         padding: 20px;
@@ -459,7 +441,8 @@ input[type="radio"] {
         gap: 20px;
     }
     .radio-label input[type="radio"] {
-        transform: scale(2.2);
+        width: 36px !important;
+        height: 36px !important;
     }
     .export-form {
         gap: 30px;

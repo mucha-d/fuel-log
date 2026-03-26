@@ -344,8 +344,8 @@ const ExportFile = () => {
                 )}
 
                 <div className='row'>
-                    <button type="button" onClick={(e) => handleExport('pdf')}>Pobierz PDF</button>
-                    <button type="button" onClick={(e) => handleExport('xlsx')}>Pobierz Excel</button>
+                    <button type="button" onClick={() => handleExport('pdf')}>Pobierz PDF</button>
+                    <button type="button" onClick={() => handleExport('xlsx')}>Pobierz Excel</button>
                 </div>
             </div>
             <nav id="nav">
