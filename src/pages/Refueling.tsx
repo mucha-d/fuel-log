@@ -10,8 +10,8 @@ const Refueling = () => {
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => 
     {
 		e.preventDefault();
-
-		const formData = new FormData(e.currentTarget);
+		const form = e.currentTarget;
+		const formData = new FormData(form);
 		const data = Object.fromEntries(formData);
 
 		if (!data.machine || String(data.machine).trim() === "") {
@@ -56,8 +56,9 @@ const Refueling = () => {
 				position: 'bottom',
 				positionAnchor: 'nav'
 			});
-			e.currentTarget.reset();
-		} catch {
+			form.reset();
+		} catch(err){
+			console.error("ZAPIS BŁĄD:", err);
 			setError("Błąd zapisu. Spróbuj ponownie.");
 		}		
     };

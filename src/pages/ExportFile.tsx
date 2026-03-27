@@ -55,7 +55,7 @@ const ExportFile = () => {
         operator: "Operator",
         total: "Total",
         time: "Godzina",
-        engineHours: "MotoGodziny"
+        engineHours: "Motogodziny"
     };
 
     // Pomocnicza funkcja
