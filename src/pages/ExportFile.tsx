@@ -247,7 +247,7 @@ const ExportFile = () => {
         }
 
         present({
-            message: `Zapisano ${files.length} ${(files.length > 1) ? "pliki" : "plik"}!!`,
+            message: `Zapisano ${files.length} ${(files.length > 1) ? "pliki" : "plik"} w folderze Dokumenty!!`,
             duration: 3000,
             position: 'bottom',
             positionAnchor: 'nav'

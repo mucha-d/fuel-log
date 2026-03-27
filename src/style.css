@@ -13,9 +13,9 @@ html, body {
 }
 
 .container {
-    width: 90vw;
+    width: 85vw;
     margin: 20px auto 80px auto;
-    padding-top: 15px;
+    padding-top: 20px;
     overflow-y: auto;
     height: 100dvh;
 }
@@ -118,6 +118,12 @@ nav a:not(:last-child)::after{
     width: auto;
 }
 
+.row button {
+    min-width: 0;
+    white-space: nowrap;
+    flex: 1;
+}
+
 label{
     font-weight: bolder;
     font-size: 20px;
@@ -210,6 +216,7 @@ input[type="radio"] {
     flex-direction: column;
     gap: 8px;
 }
+
 input[type="date"]{
     width: 70%;
 }
@@ -242,7 +249,7 @@ input[type="date"]{
     }
 
     .container {
-        width: 94vw;
+        width: 90vw;
         margin: 10px auto 70px auto;
     }
 
@@ -411,7 +418,7 @@ input[type="date"]{
     }
 
     .container {
-        width: 75vw;
+        width: 70vw;
         margin: 40px auto 140px auto;
     }
 

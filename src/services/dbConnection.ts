@@ -83,7 +83,7 @@ export const addFuelDelivery = async (entry: {
 
 export const getRefuelings = async (startDate: string, endDate: string): Promise<any[]> => {
     const result = await getDB().query(
-        `SELECT * FROM refuelings WHERE date >= ? AND date <= ? ORDER BY date ASC, time ASC`,
+        `SELECT date, time, machine, sideNumber, operator, liters, engineHours, total FROM refuelings WHERE date >= ? AND date <= ? ORDER BY date ASC, time ASC`,
         [startDate, endDate]
     );
     return result.values ?? [];
@@ -91,7 +91,7 @@ export const getRefuelings = async (startDate: string, endDate: string): Promise
 
 export const getFuelDeliveries = async (startDate: string, endDate: string): Promise<any[]> => {
     const result = await getDB().query(
-        `SELECT * FROM deliveries WHERE date >= ? AND date <= ? ORDER BY date ASC, time ASC`,
+        `SELECT date, time, machine, sideNumber, operator, liters, engineHours, total FROM deliveries WHERE date >= ? AND date <= ? ORDER BY date ASC, time ASC`,
         [startDate, endDate]
     );
     return result.values ?? [];
