@@ -13,7 +13,7 @@ html, body {
 }
 
 .container {
-    width: 85vw;
+    width: 87vw;
     margin: 20px auto 80px auto;
     padding-top: 20px;
     overflow-y: auto;
@@ -249,7 +249,7 @@ input[type="date"]{
     }
 
     .container {
-        width: 90vw;
+        width: 91vw;
         margin: 10px auto 70px auto;
     }
 

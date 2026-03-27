@@ -2,7 +2,7 @@ import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
   appId: 'com.muchad.refuelingapp',
-  appName: 'Formularz Tankowania',
+  appName: 'FuelLog',
   webDir: 'build',
   plugins: {
     Keyboard: {
