@@ -6,6 +6,8 @@ import autoTable from "jspdf-autotable";
 import { useIonToast } from '@ionic/react';
 import * as XLSX from 'xlsx';
 import { getRefuelings, getFuelDeliveries } from "../services/dbConnection";
+import { FuelEntry } from "../types/fuel";
+import { formatLocalDate, parseLocalDate } from "../utils/localDate";
 
 type RangeMode = "month" | "custom";
 type DataType = "refuelings" | "deliveries" | "both";
@@ -38,16 +40,14 @@ const ExportFile = () => {
             const label = `${selectedYear}-${String(selectedMonth + 1).padStart(2, "0")}`;
             return { startDate, endDate, label };
         } else {
-            const startDate = customStart ? new Date(customStart) : new Date(now.getFullYear(), now.getMonth(), 1);
-            const endDate = customEnd ? new Date(customEnd + "T23:59:59") : new Date();
-            const fmt = (d: Date) =>
-                `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-            const label = `${fmt(startDate)}_${fmt(endDate)}`;
+            const startDate = customStart ? parseLocalDate(customStart) : new Date(now.getFullYear(), now.getMonth(), 1);
+            const endDate = customEnd ? parseLocalDate(customEnd, true) : new Date();
+            const label = `${formatLocalDate(startDate)}_${formatLocalDate(endDate)}`;
             return { startDate, endDate, label };
         }
     };
 
-    const columnLabels: Record<string, string> = {
+    const columnLabels: Record<keyof FuelEntry, string> = {
         date: "Data",
         liters: "Litry",
         machine: "Maszyna",
@@ -70,13 +70,13 @@ const ExportFile = () => {
     const generatePdf = async (
         title: string,
         filename: string,
-        rows: any[],
+        rows: FuelEntry[],
         startDate: Date,
         endDate: Date
     ) => 
     {
         const doc = new jsPDF({ orientation: "landscape" });
-        const columns = Object.keys(rows[0]);
+        const columns = Object.keys(rows[0]) as Array<keyof FuelEntry>;
         const headers = columns.map((c) => columnLabels[c] || c);
 
         // wartości w tej samej kolejności co kolumny
@@ -119,13 +119,13 @@ const ExportFile = () => {
     const generateXlsx = async (
         title: string,
         filename: string,
-        rows: any[]
+        rows: FuelEntry[]
     ) =>
     {
-        const columns = Object.keys(rows[0]);
+        const columns = Object.keys(rows[0]) as Array<keyof FuelEntry>;
         const headers = columns.map((c) => columnLabels[c] || c);
         const body = rows.map((row) => columns.map((c) => {
-            if (c === 'date') return new Date(row[c]);
+            if (c === 'date') return parseLocalDate(row[c]);
             return row[c];
         }));
 
@@ -164,41 +164,49 @@ const ExportFile = () => {
         }
 
         const files: string[] = [];
-        const fmt = (d: Date) => d.toISOString().split("T")[0];
+        const fmt = formatLocalDate;
 
         // DOSTAWY
         if (includeDeliveries) 
         {
-            let deliveries = [];
+            let deliveries: FuelEntry[] = [];
             try {
                 deliveries = await getFuelDeliveries(fmt(startDate), fmt(endDate));
             } catch {
                 return setError("Błąd odczytu danych. Spróbuj ponownie.");
             }
-            const filtered = deliveries.filter((d: any) => {
-                const date = new Date(d.date);
+            const filtered = deliveries.filter((d) => {
+                const date = parseLocalDate(d.date);
                 return date >= startDate && date <= endDate;
             });
 
             if (filtered.length > 0) {
                 if(format === 'pdf'){
                     const filename = `dostawy_${label}.pdf`;
-                    await generatePdf(
-                        "Dostawy paliwa",
-                        filename,
-                        filtered,
-                        startDate,
-                        endDate
-                    );
+                    try {
+                        await generatePdf(
+                            "Dostawy paliwa",
+                            filename,
+                            filtered,
+                            startDate,
+                            endDate
+                        );
+                    } catch {
+                        return setError("Błąd zapisu pliku PDF dla dostaw paliwa. Spróbuj ponownie.");
+                    }
                     files.push(filename);
                 }
                 else if(format === 'xlsx'){
                     const filename = `dostawy_${label}.xlsx`;
-                    await generateXlsx(
-                        "Dostawy paliwa",
-                        filename,
-                        filtered
-                    );
+                    try {
+                        await generateXlsx(
+                            "Dostawy paliwa",
+                            filename,
+                            filtered
+                        );
+                    } catch {
+                        return setError("Błąd zapisu pliku Excel dla dostaw paliwa. Spróbuj ponownie.");
+                    }
                     files.push(filename);
                 }
             }else{
@@ -209,36 +217,46 @@ const ExportFile = () => {
         // TANKOWANIA
         if (includeRefuelings) 
         {
-            let refuelings = [];
+            let refuelings: FuelEntry[] = [];
             try {
                 refuelings = await getRefuelings(fmt(startDate), fmt(endDate));
             } catch {
                 return setError("Błąd odczytu danych. Spróbuj ponownie.");
             }
-            const filtered = refuelings.filter((d: any) => {
-                const date = new Date(d.date);
+            const filtered = refuelings.filter((d) => {
+                const date = parseLocalDate(d.date);
                 return date >= startDate && date <= endDate;
             });
 
             if (filtered.length > 0) {
                 if(format === 'pdf'){
                     const filename = `tankowania_${label}.pdf`;
-                    await generatePdf(
-                        "Tankowania",
-                        filename,
-                        filtered,
-                        startDate,
-                        endDate
-                    );
+                    try {
+                        await generatePdf(
+                            "Tankowania",
+                            filename,
+                            filtered,
+                            startDate,
+                            endDate
+                        );
+                    } catch {
+                        const partialSave = files.length > 0 ? ` Zapisano wcześniej: ${files.join(", ")}.` : "";
+                        return setError(`Błąd zapisu pliku PDF dla tankowań. Spróbuj ponownie.${partialSave}`);
+                    }
                     files.push(filename);
                 }
                 else if(format === 'xlsx'){
                     const filename = `tankowania_${label}.xlsx`;
-                    await generateXlsx(
-                        "Tankowania",
-                        filename,
-                        filtered
-                    );
+                    try {
+                        await generateXlsx(
+                            "Tankowania",
+                            filename,
+                            filtered
+                        );
+                    } catch {
+                        const partialSave = files.length > 0 ? ` Zapisano wcześniej: ${files.join(", ")}.` : "";
+                        return setError(`Błąd zapisu pliku Excel dla tankowań. Spróbuj ponownie.${partialSave}`);
+                    }
                     files.push(filename);
                 }
             }else{

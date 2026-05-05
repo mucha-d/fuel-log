@@ -1,4 +1,5 @@
 import { CapacitorSQLite, SQLiteConnection, SQLiteDBConnection } from '@capacitor-community/sqlite';
+import { FuelEntry } from '../types/fuel';
 
 const sqlite = new SQLiteConnection(CapacitorSQLite);
 let db: SQLiteDBConnection | null = null;
@@ -47,16 +48,7 @@ const getDB = (): SQLiteDBConnection => {
     return db;
 };
 
-export const addRefueling = async (entry: {
-    date: string;
-    time: string;
-    machine: string;
-    sideNumber: string;
-    operator: string;
-    liters: number;
-    engineHours: number;
-    total: number;
-}): Promise<void> => {
+export const addRefueling = async (entry: FuelEntry): Promise<void> => {
     await getDB().run(
         `INSERT INTO refuelings (date, time, machine, sideNumber, operator, liters, engineHours, total)
          VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
@@ -64,16 +56,7 @@ export const addRefueling = async (entry: {
     );
 };
 
-export const addFuelDelivery = async (entry: {
-    date: string;
-    time: string;
-    machine: string;
-    sideNumber: string;
-    operator: string;
-    liters: number;
-    engineHours: number;
-    total: number;
-}): Promise<void> => {
+export const addFuelDelivery = async (entry: FuelEntry): Promise<void> => {
     await getDB().run(
         `INSERT INTO deliveries (date, time, machine, sideNumber, operator, liters, engineHours, total)
          VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
@@ -81,18 +64,18 @@ export const addFuelDelivery = async (entry: {
     );
 };
 
-export const getRefuelings = async (startDate: string, endDate: string): Promise<any[]> => {
+export const getRefuelings = async (startDate: string, endDate: string): Promise<FuelEntry[]> => {
     const result = await getDB().query(
         `SELECT date, time, machine, sideNumber, operator, liters, engineHours, total FROM refuelings WHERE date >= ? AND date <= ? ORDER BY date ASC, time ASC`,
         [startDate, endDate]
     );
-    return result.values ?? [];
+    return (result.values ?? []) as FuelEntry[];
 };
 
-export const getFuelDeliveries = async (startDate: string, endDate: string): Promise<any[]> => {
+export const getFuelDeliveries = async (startDate: string, endDate: string): Promise<FuelEntry[]> => {
     const result = await getDB().query(
         `SELECT date, time, machine, sideNumber, operator, liters, engineHours, total FROM deliveries WHERE date >= ? AND date <= ? ORDER BY date ASC, time ASC`,
         [startDate, endDate]
     );
-    return result.values ?? [];
+    return (result.values ?? []) as FuelEntry[];
 };

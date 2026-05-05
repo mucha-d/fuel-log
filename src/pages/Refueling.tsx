@@ -2,6 +2,7 @@ import React from "react";
 import { useState } from "react";
 import { useIonToast } from '@ionic/react';
 import { addRefueling } from "../services/dbConnection";
+import { formatLocalDate } from "../utils/localDate";
 
 const Refueling = () => {
     const [error, setError] = useState("");
@@ -37,7 +38,7 @@ const Refueling = () => {
 
 		const now = new Date();
 		const entry = {
-			date: now.toISOString().split("T")[0],
+			date: formatLocalDate(now),
 			time: now.toLocaleTimeString("pl-PL"),
 			machine: String(data.machine),
 			sideNumber: String(data.sideNumber),
@@ -57,8 +58,7 @@ const Refueling = () => {
 				positionAnchor: 'nav'
 			});
 			form.reset();
-		} catch(err){
-			console.error("ZAPIS BŁĄD:", err);
+		} catch{
 			setError("Błąd zapisu. Spróbuj ponownie.");
 		}		
     };

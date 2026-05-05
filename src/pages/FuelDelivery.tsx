@@ -2,6 +2,7 @@ import React from "react";
 import { useState } from "react";
 import { useIonToast } from '@ionic/react';
 import { addFuelDelivery } from "../services/dbConnection";
+import { formatLocalDate } from "../utils/localDate";
 
 const FuelDelivery = () => {
     const [error, setError] = useState("");
@@ -38,7 +39,7 @@ const FuelDelivery = () => {
 
         const now = new Date();
         const entry = {
-            date: now.toISOString().split("T")[0],
+            date: formatLocalDate(now),
             time: now.toLocaleTimeString("pl-PL"),
             machine: String(data.machine),
             sideNumber: String(data.sideNumber),

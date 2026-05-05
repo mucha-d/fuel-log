@@ -1,11 +1,10 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Route } from 'react-router-dom';
 import { IonApp, IonRouterOutlet, setupIonicReact } from '@ionic/react';
 import { IonReactRouter } from '@ionic/react-router';
 import Refueling from "./pages/Refueling";
 import FuelDelivery from "./pages/FuelDelivery";
 import ExportFile from './pages/ExportFile';
-import { useEffect } from 'react';
 import { initDB } from './services/dbConnection';
 
 /* Core CSS required for Ionic components to work properly */
@@ -31,9 +30,40 @@ import './style.css';
 setupIonicReact();
 
 const App: React.FC = () => {
+  const [dbReady, setDbReady] = useState(false);
+  const [dbError, setDbError] = useState("");
+
   useEffect(() => {
-		initDB();
+    let isMounted = true;
+
+    const initializeDB = async () => {
+      try {
+        await initDB();
+        if (isMounted) setDbReady(true);
+      } catch {
+        if (isMounted) setDbError("Nie udało się uruchomić bazy danych.");
+      }
+    };
+
+    initializeDB();
+
+    return () => {
+      isMounted = false;
+    };
   }, []);
+
+  if (dbError || !dbReady) {
+    return (
+      <IonApp>
+        <div className="container">
+          <h1>{dbError ? "Błąd aplikacji" : "Ładowanie..."}</h1>
+          <p id="error" style={{ visibility: "visible" }}>
+            {dbError || "Uruchamianie bazy danych..."}
+          </p>
+        </div>
+      </IonApp>
+    );
+  }
 
   return (
     <IonApp>
