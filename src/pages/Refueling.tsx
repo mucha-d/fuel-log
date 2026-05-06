@@ -86,6 +86,7 @@ const Refueling = () => {
 				<a href="/" className="active">Tankowanie</a>
 				<a href="/FuelDelivery">Dostawa<br/>paliwa</a>
 				<a href="/ExportFile">Pobierz<br/>do pliku</a>
+				<a href="/DatabaseBackup">Kopia<br/>bazy</a>
 			</nav>
 		</div>
 	);

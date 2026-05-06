@@ -382,6 +382,7 @@ const ExportFile = () => {
                 <a href="/">Tankowanie</a>
                 <a href="/FuelDelivery">Dostawa<br/>paliwa</a>
                 <a href="/ExportFile" className="active">Pobierz<br/>do pliku</a>
+                <a href="/DatabaseBackup">Kopia<br/>bazy</a>
             </nav>
         </div>
     );
