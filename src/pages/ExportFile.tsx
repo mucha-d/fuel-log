@@ -8,9 +8,11 @@ import * as XLSX from 'xlsx';
 import { getRefuelings, getFuelDeliveries } from "../services/dbConnection";
 import { FuelEntry } from "../types/fuel";
 import { formatLocalDate, parseLocalDate } from "../utils/localDate";
+import robotoRegular from "../assets/Roboto-Regular.ttf";
 
 type RangeMode = "month" | "custom";
 type DataType = "refuelings" | "deliveries" | "both";
+const PDF_FONT = "Roboto";
 
 const MONTHS = [
     "Styczeń", "Luty", "Marzec", "Kwiecień", "Maj", "Czerwiec",
@@ -67,6 +69,22 @@ const ExportFile = () => {
         });
     };
 
+    const loadPdfFont = async (doc: jsPDF) => {
+        const response = await fetch(robotoRegular);
+        const buffer = await response.arrayBuffer();
+        const bytes = new Uint8Array(buffer);
+        let binary = "";
+
+        bytes.forEach((byte) => {
+            binary += String.fromCharCode(byte);
+        });
+
+        const base64 = btoa(binary);
+        doc.addFileToVFS("Roboto-Regular.ttf", base64);
+        doc.addFont("Roboto-Regular.ttf", PDF_FONT, "normal");
+        doc.addFont("Roboto-Regular.ttf", PDF_FONT, "bold");
+    };
+
     const generatePdf = async (
         title: string,
         filename: string,
@@ -76,17 +94,18 @@ const ExportFile = () => {
     ) => 
     {
         const doc = new jsPDF({ orientation: "landscape" });
+        await loadPdfFont(doc);
         const columns = Object.keys(rows[0]) as Array<keyof FuelEntry>;
         const headers = columns.map((c) => columnLabels[c] || c);
 
         // wartości w tej samej kolejności co kolumny
         const body = rows.map((row) => columns.map((c) => row[c]));
 
-        doc.setFont("helvetica", "bold");
+        doc.setFont(PDF_FONT, "bold");
         doc.setFontSize(32);
         doc.text(title, 20, 20);
 
-        doc.setFont("helvetica", "normal");
+        doc.setFont(PDF_FONT, "normal");
         doc.setFontSize(20);
         doc.text(
         `Od: ${startDate.toLocaleDateString()} do: ${endDate.toLocaleDateString()}`,
@@ -98,7 +117,8 @@ const ExportFile = () => {
             startY: 40,
             head: [headers],
             body: body,
-            styles: { fontSize: 14 },
+            styles: { font: PDF_FONT, fontSize: 14 },
+            headStyles: { fontStyle: "bold" },
         });
 
         const pdfOutput = doc.output("arraybuffer");
