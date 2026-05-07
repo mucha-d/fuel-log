@@ -3,6 +3,7 @@ import { useState } from "react";
 import { useIonToast } from '@ionic/react';
 import { addFuelDelivery } from "../services/dbConnection";
 import { formatLocalDate } from "../utils/localDate";
+import { IonRouterLink } from "@ionic/react";
 
 const FuelDelivery = () => {
     const [error, setError] = useState("");
@@ -84,10 +85,10 @@ const FuelDelivery = () => {
             </form>
 
             <nav id="nav">
-                <a href="/">Tankowanie</a>
-                <a href="/FuelDelivery" className="active">Dostawa<br/>paliwa</a>
-                <a href="/ExportFile">Pobierz<br/>do pliku</a>
-                <a href="/DatabaseBackup">Kopia<br/>bazy</a>
+                <IonRouterLink routerLink="/">Tankowanie</IonRouterLink>
+                <IonRouterLink routerLink="/FuelDelivery" className="active">Dostawa<br/>paliwa</IonRouterLink>
+                <IonRouterLink routerLink="/ExportFile">Pobierz<br/>do pliku</IonRouterLink>
+                <IonRouterLink routerLink="/DatabaseBackup">Kopia<br/>bazy</IonRouterLink>
             </nav>
         </div>
     );

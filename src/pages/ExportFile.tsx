@@ -8,6 +8,7 @@ import * as XLSX from 'xlsx';
 import { getRefuelings, getFuelDeliveries } from "../services/dbConnection";
 import { FuelEntry } from "../types/fuel";
 import { formatLocalDate, parseLocalDate } from "../utils/localDate";
+import { IonRouterLink } from "@ionic/react";
 import robotoRegular from "../assets/Roboto-Regular.ttf";
 
 type RangeMode = "month" | "custom";
@@ -399,10 +400,10 @@ const ExportFile = () => {
                 </div>
             </div>
             <nav id="nav">
-                <a href="/">Tankowanie</a>
-                <a href="/FuelDelivery">Dostawa<br/>paliwa</a>
-                <a href="/ExportFile" className="active">Pobierz<br/>do pliku</a>
-                <a href="/DatabaseBackup">Kopia<br/>bazy</a>
+                <IonRouterLink routerLink="/">Tankowanie</IonRouterLink>
+                <IonRouterLink routerLink="/FuelDelivery">Dostawa<br/>paliwa</IonRouterLink>
+                <IonRouterLink routerLink="/ExportFile" className="active">Pobierz<br/>do pliku</IonRouterLink>
+                <IonRouterLink routerLink="/DatabaseBackup">Kopia<br/>bazy</IonRouterLink>
             </nav>
         </div>
     );

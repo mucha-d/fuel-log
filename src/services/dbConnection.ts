@@ -4,6 +4,7 @@ import { FuelEntry } from '../types/fuel';
 const sqlite = new SQLiteConnection(CapacitorSQLite);
 const DB_NAME = 'fueldb';
 let db: SQLiteDBConnection | null = null;
+let initPromise: Promise<void> | null = null;
 
 const CREATE_TABLES = `
     CREATE TABLE IF NOT EXISTS refuelings (
@@ -31,17 +32,22 @@ const CREATE_TABLES = `
 `;
 
 export const initDB = async (): Promise<void> => {
-    await sqlite.checkConnectionsConsistency();
-    const isConn = (await sqlite.isConnection(DB_NAME, false)).result;
+    if (db) return;
+    if (initPromise) return initPromise;
+    initPromise = (async () => {
+        await sqlite.checkConnectionsConsistency();
+        const isConn = (await sqlite.isConnection(DB_NAME, false)).result;
 
-    if (isConn) {
-        db = await sqlite.retrieveConnection(DB_NAME, false);
-    } else {
-        db = await sqlite.createConnection(DB_NAME, false, 'no-encryption', 1, false);
-    }
+        if (isConn) {
+            db = await sqlite.retrieveConnection(DB_NAME, false);
+        } else {
+            db = await sqlite.createConnection(DB_NAME, false, 'no-encryption', 1, false);
+        }
 
-    await db.open();
-    await db.execute(CREATE_TABLES);
+        await db.open();
+        await db.execute(CREATE_TABLES);
+    })();
+    return initPromise;
 };
 
 const getDB = (): SQLiteDBConnection => {
@@ -111,7 +117,7 @@ export const importDatabaseBackup = async (jsonstring: string): Promise<void> =>
             await sqlite.closeConnection(DB_NAME, false);
             db = null;
         }
-
+        initPromise = null;
         await sqlite.importFromJson(backup);
     } finally {
         await initDB();

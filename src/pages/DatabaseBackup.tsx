@@ -3,6 +3,7 @@ import { Filesystem, Directory, Encoding } from '@capacitor/filesystem';
 import { useIonToast } from '@ionic/react';
 import { exportDatabaseBackup, importDatabaseBackup } from "../services/dbConnection";
 import { formatLocalDate } from "../utils/localDate";
+import { IonRouterLink } from "@ionic/react";
 
 const readTextFile = (file: File): Promise<string> => {
     return new Promise((resolve, reject) => {
@@ -105,10 +106,10 @@ const DatabaseBackup = () => {
             </div>
 
             <nav id="nav">
-                <a href="/">Tankowanie</a>
-                <a href="/FuelDelivery">Dostawa<br/>paliwa</a>
-                <a href="/ExportFile">Pobierz<br/>do pliku</a>
-                <a href="/DatabaseBackup" className="active">Kopia<br/>bazy</a>
+                <IonRouterLink routerLink="/">Tankowanie</IonRouterLink>
+                <IonRouterLink routerLink="/FuelDelivery">Dostawa<br/>paliwa</IonRouterLink>
+                <IonRouterLink routerLink="/ExportFile">Pobierz<br/>do pliku</IonRouterLink>
+                <IonRouterLink routerLink="/DatabaseBackup" className="active">Kopia<br/>bazy</IonRouterLink>
             </nav>
         </div>
     );
