@@ -3,7 +3,8 @@ import { useState } from "react";
 import { useIonToast } from '@ionic/react';
 import { addFuelDelivery } from "../services/dbConnection";
 import { formatLocalDate } from "../utils/localDate";
-import { IonRouterLink } from "@ionic/react";
+import { Link } from "react-router-dom";
+import icon from '../assets/gear.png';
 
 const FuelDelivery = () => {
     const [error, setError] = useState("");
@@ -68,7 +69,9 @@ const FuelDelivery = () => {
     return (
         <div className="container">
             <h1>Dostawa paliwa</h1>
-
+            <Link to="/DatabaseBackup">
+				<img src={icon} width={24} id='gear' />
+			</Link>
             <form onSubmit={handleSubmit}>
                 <p id="error" style={{ visibility: error ? "visible" : "hidden" }}>
                 {error}
@@ -85,10 +88,9 @@ const FuelDelivery = () => {
             </form>
 
             <nav id="nav">
-                <IonRouterLink routerLink="/">Tankowanie</IonRouterLink>
-                <IonRouterLink routerLink="/FuelDelivery" className="active">Dostawa<br/>paliwa</IonRouterLink>
-                <IonRouterLink routerLink="/ExportFile">Pobierz<br/>do pliku</IonRouterLink>
-                <IonRouterLink routerLink="/DatabaseBackup">Kopia<br/>bazy</IonRouterLink>
+                <Link to="/">Tankowanie</Link>
+                <Link to="/FuelDelivery" className="active">Dostawa<br/>paliwa</Link>
+                <Link to="/ExportFile">Pobierz<br/>do pliku</Link>
             </nav>
         </div>
     );

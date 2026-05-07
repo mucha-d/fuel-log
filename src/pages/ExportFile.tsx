@@ -8,8 +8,9 @@ import * as XLSX from 'xlsx';
 import { getRefuelings, getFuelDeliveries } from "../services/dbConnection";
 import { FuelEntry } from "../types/fuel";
 import { formatLocalDate, parseLocalDate } from "../utils/localDate";
-import { IonRouterLink } from "@ionic/react";
+import { Link } from "react-router-dom";
 import robotoRegular from "../assets/Roboto-Regular.ttf";
+import icon from '../assets/gear.png';
 
 type RangeMode = "month" | "custom";
 type DataType = "refuelings" | "deliveries" | "both";
@@ -297,6 +298,9 @@ const ExportFile = () => {
     return (
         <div className="container">
             <h1>Pobierz do pliku</h1>
+            <Link to="/DatabaseBackup">
+				<img src={icon} width={24} id='gear' />
+			</Link>
             <div className="export-form">
                 <p id="error" style={{ visibility: error ? "visible" : "hidden" }}>
                     {error}
@@ -400,10 +404,9 @@ const ExportFile = () => {
                 </div>
             </div>
             <nav id="nav">
-                <IonRouterLink routerLink="/">Tankowanie</IonRouterLink>
-                <IonRouterLink routerLink="/FuelDelivery">Dostawa<br/>paliwa</IonRouterLink>
-                <IonRouterLink routerLink="/ExportFile" className="active">Pobierz<br/>do pliku</IonRouterLink>
-                <IonRouterLink routerLink="/DatabaseBackup">Kopia<br/>bazy</IonRouterLink>
+                <Link to="/">Tankowanie</Link>
+                <Link to="/FuelDelivery">Dostawa<br/>paliwa</Link>
+                <Link to="/ExportFile" className="active">Pobierz<br/>do pliku</Link>
             </nav>
         </div>
     );
